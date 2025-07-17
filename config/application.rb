@@ -36,6 +36,10 @@ module RoRBe
     # Skip views, helpers and assets when generating a new resource.
     config.api_only = true
     
+    # Enable session middleware for Sidekiq UI
+    config.middleware.use ActionDispatch::Cookies
+    config.middleware.use ActionDispatch::Session::CookieStore, key: '_ror_be_session'
+    
     # Use Sidekiq as the queue adapter for Active Job
     config.active_job.queue_adapter = :sidekiq
   end
