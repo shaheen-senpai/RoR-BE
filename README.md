@@ -54,7 +54,7 @@ The project uses Docker Compose to set up the following services:
 
 3. Start the services using Docker Compose:
    ```bash
-   docker-compose up
+   docker compose up -d
    ```
 
 4. Create and migrate the database (in another terminal):
