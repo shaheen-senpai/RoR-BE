@@ -27,3 +27,39 @@
 
 # Ignore master key for decrypting credentials and more.
 /config/master.key
+
+# Environment variables
+/.env
+
+# Ignore database dumps
+*.dump
+
+# Ignore coverage reports
+/coverage
+
+# Ignore VCR cassettes
+/spec/vcr_cassettes
+
+# Ignore Redis dump
+*.rdb
+
+# Ignore Swagger docs (auto-generated)
+/swagger/output
+
+# Ignore node_modules
+/node_modules
+
+# Ignore yarn files
+/yarn-error.log
+yarn-debug.log*
+.yarn-integrity
+
+# Ignore IDE files
+/.idea
+/.vscode
+
+# Ignore Mac files
+.DS_Store
+
+# Ignore docker volumes
+/docker/volumes
