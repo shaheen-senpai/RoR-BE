@@ -59,12 +59,12 @@ The project uses Docker Compose to set up the following services:
 
 4. Create and migrate the database (in another terminal):
    ```bash
-   docker-compose exec web rails db:create db:migrate
+   docker compose exec web rails db:create db:migrate
    ```
 
 5. Seed the database with sample data (optional):
    ```bash
-   docker-compose exec web rails db:seed
+   docker compose exec web rails db:seed
    ```
 
 ## 🔐 Authentication

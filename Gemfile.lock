@@ -46,6 +46,11 @@ GEM
       erubi (~> 1.4)
       rails-dom-testing (~> 2.0)
       rails-html-sanitizer (~> 1.1, >= 1.2.0)
+    active_model_serializers (0.10.15)
+      actionpack (>= 4.1)
+      activemodel (>= 4.1)
+      case_transform (>= 0.2)
+      jsonapi-renderer (>= 0.1.1.beta1, < 0.3)
     activejob (7.0.8.7)
       activesupport (= 7.0.8.7)
       globalid (>= 0.3.6)
@@ -68,20 +73,31 @@ GEM
       tzinfo (~> 2.0)
     addressable (2.8.7)
       public_suffix (>= 2.0.2, < 7.0)
+    annotate (3.2.0)
+      activerecord (>= 3.2, < 8.0)
+      rake (>= 10.4, < 14.0)
+    ansi (1.5.0)
     ast (2.4.3)
     base64 (0.3.0)
     bcrypt (3.1.20)
     bigdecimal (3.2.2)
-    bootsnap (1.18.6)
+    bootsnap (1.16.0)
       msgpack (~> 1.2)
     builder (3.3.0)
+    bullet (8.0.8)
+      activesupport (>= 3.0.0)
+      uniform_notifier (~> 1.11)
     byebug (11.1.3)
+    case_transform (0.2)
+      activesupport
     coderay (1.1.3)
-    concurrent-ruby (1.3.5)
+    concurrent-ruby (1.3.4)
+    connection_pool (2.5.3)
     crack (1.0.0)
       bigdecimal
       rexml
     crass (1.0.6)
+    csv (3.3.5)
     database_cleaner-active_record (2.2.1)
       activerecord (>= 5.a)
       database_cleaner-core (~> 2.0.0)
@@ -101,19 +117,49 @@ GEM
       railties (>= 6.1.0)
     faker (2.23.0)
       i18n (>= 1.8.11, < 2)
+    flipper (1.3.5)
+      concurrent-ruby (< 2)
+    flipper-redis (1.3.5)
+      flipper (~> 1.3.5)
+      redis (>= 3.0, < 6)
+    flipper-ui (1.3.5)
+      erubi (>= 1.0.0, < 2.0.0)
+      flipper (~> 1.3.5)
+      rack (>= 1.4, < 4)
+      rack-protection (>= 1.5.3, < 5.0.0)
+      rack-session (>= 1.0.2, < 3.0.0)
+      sanitize (< 8)
     globalid (1.2.1)
       activesupport (>= 6.1)
     hashdiff (1.2.0)
+    httparty (0.23.1)
+      csv
+      mini_mime (>= 1.0.0)
+      multi_xml (>= 0.5.2)
     i18n (1.14.7)
       concurrent-ruby (~> 1.0)
     json (2.13.0)
     json-schema (5.2.1)
       addressable (~> 2.8)
       bigdecimal (~> 3.1)
+    jsonapi-renderer (0.2.2)
     jwt (3.1.2)
       base64
+    kaminari (1.2.2)
+      activesupport (>= 4.1.0)
+      kaminari-actionview (= 1.2.2)
+      kaminari-activerecord (= 1.2.2)
+      kaminari-core (= 1.2.2)
+    kaminari-actionview (1.2.2)
+      actionview
+      kaminari-core (= 1.2.2)
+    kaminari-activerecord (1.2.2)
+      activerecord
+      kaminari-core (= 1.2.2)
+    kaminari-core (1.2.2)
     language_server-protocol (3.17.0.5)
     lint_roller (1.1.0)
+    logger (1.7.0)
     loofah (2.24.1)
       crass (~> 1.0.2)
       nokogiri (>= 1.12.0)
@@ -129,6 +175,7 @@ GEM
     mini_portile2 (2.8.9)
     minitest (5.25.5)
     msgpack (1.8.0)
+    multi_xml (0.6.0)
     net-imap (0.5.9)
       date
       net-protocol
@@ -142,6 +189,9 @@ GEM
     nokogiri (1.18.8)
       mini_portile2 (~> 2.8.2)
       racc (~> 1.4)
+    paper_trail (16.0.0)
+      activerecord (>= 6.1)
+      request_store (~> 1.4)
     parallel (1.27.0)
     parser (3.3.8.0)
       ast (~> 2.4.1)
@@ -163,6 +213,11 @@ GEM
     rack (2.2.17)
     rack-cors (2.0.2)
       rack (>= 2.0.0)
+    rack-protection (3.2.0)
+      base64 (>= 0.1.0)
+      rack (~> 2.2, >= 2.2.4)
+    rack-session (1.0.2)
+      rack (< 3)
     rack-test (2.2.0)
       rack (>= 1.3)
     rails (7.0.8.7)
@@ -196,7 +251,11 @@ GEM
     rainbow (3.1.1)
     rake (13.3.0)
     redis (4.8.1)
+    redis-client (0.25.1)
+      connection_pool
     regexp_parser (2.10.0)
+    request_store (1.7.0)
+      rack (>= 1.4)
     rexml (3.4.1)
     rspec-core (3.13.5)
       rspec-support (~> 3.13.0)
@@ -268,12 +327,25 @@ GEM
     rubocop-rspec_rails (2.29.1)
       rubocop (~> 1.61)
     ruby-progressbar (1.13.0)
+    sanitize (7.0.0)
+      crass (~> 1.0.2)
+      nokogiri (>= 1.16.8)
     shoulda-matchers (6.5.0)
       activesupport (>= 5.2.0)
+    sidekiq (7.3.9)
+      base64
+      connection_pool (>= 2.3.0)
+      logger
+      rack (>= 2.2.4)
+      redis-client (>= 0.22.2)
     simplecov (0.22.0)
       docile (~> 1.1)
       simplecov-html (~> 0.11)
       simplecov_json_formatter (~> 0.1)
+    simplecov-console (0.9.3)
+      ansi
+      simplecov
+      terminal-table
     simplecov-html (0.13.2)
     simplecov_json_formatter (0.1.4)
     standard (1.50.0)
@@ -288,6 +360,8 @@ GEM
     standard-performance (1.8.0)
       lint_roller (~> 1.1)
       rubocop-performance (~> 1.25.0)
+    terminal-table (4.0.0)
+      unicode-display_width (>= 1.1.1, < 4)
     thor (1.3.2)
     timecop (0.9.10)
     timeout (0.4.3)
@@ -296,6 +370,7 @@ GEM
     unicode-display_width (3.1.4)
       unicode-emoji (~> 4.0, >= 4.0.4)
     unicode-emoji (4.0.4)
+    uniform_notifier (1.17.0)
     vcr (6.3.1)
       base64
     webmock (3.25.1)
@@ -312,15 +387,25 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  active_model_serializers
+  annotate
   bcrypt
-  bootsnap
+  bootsnap (~> 1.16.0)
+  bullet
   byebug (~> 11.1)
+  concurrent-ruby (= 1.3.4)
   database_cleaner-active_record
   dotenv-rails
   factory_bot_rails (~> 6.2)
   faker (~> 2.23)
+  flipper
+  flipper-redis
+  flipper-ui
+  httparty
   jwt
+  kaminari
   memoist
+  paper_trail
   pg (~> 1.1)
   pry-byebug (~> 3.9)
   pry-rails (~> 0.3)
@@ -330,10 +415,15 @@ DEPENDENCIES
   redis (~> 4.0)
   rspec-rails (~> 5.0)
   rswag
+  rswag-api
+  rswag-specs
+  rswag-ui
   rubocop-rails (~> 2.14)
   rubocop-rspec (~> 2.11)
   shoulda-matchers
-  simplecov (~> 0.21)
+  sidekiq
+  simplecov
+  simplecov-console
   standard (~> 1.12)
   timecop (~> 0.9)
   tzinfo-data
