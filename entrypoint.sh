@@ -20,7 +20,7 @@ if PGPASSWORD=$POSTGRES_PASSWORD psql -h db -U $POSTGRES_USER -lqt | cut -d \| -
 else
   # Database doesn't exist, create it and run migrations
   echo "Database doesn't exist, creating and running migrations"
-  bundle exec rails db:create db:migrate
+  bundle exec rails db:create db:migrate db:seed
 fi
 
 # Then exec the container's main process (what's set as CMD in the Dockerfile).
