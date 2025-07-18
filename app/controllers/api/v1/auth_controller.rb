@@ -5,7 +5,11 @@ module Api
       
       # POST /api/v1/auth/login
       def login
-        result = AuthenticationService.authenticate(params[:email], params[:password])
+        # Handle both direct parameters and nested parameters
+        email = params[:user].present? ? params[:user][:email] : params[:email]
+        password = params[:user].present? ? params[:user][:password] : params[:password]
+        
+        result = AuthenticationService.authenticate(email, password)
         
         if result[:success]
           render json: { 

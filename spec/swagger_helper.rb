@@ -19,17 +19,35 @@ RSpec.configure do |config|
       openapi: '3.0.1',
       info: {
         title: 'API V1',
-        version: 'v1'
+        version: 'v1',
+        description: 'API Documentation for Version 1'
+      },
+      components: {
+        securitySchemes: {
+          bearer_auth: {
+            type: :http,
+            scheme: :bearer,
+            bearerFormat: 'JWT'
+          }
+        },
+        schemas: {
+          error: {
+            type: :object,
+            properties: {
+              error: { type: :string }
+            }
+          }
+        }
       },
       paths: {},
       servers: [
         {
-          url: 'https://{defaultHost}',
-          variables: {
-            defaultHost: {
-              default: 'www.example.com'
-            }
-          }
+          url: '/',
+          description: 'Relative URL (preferred for Docker environments)'
+        },
+        {
+          url: 'http://localhost:3000',
+          description: 'Local development server'
         }
       ]
     }

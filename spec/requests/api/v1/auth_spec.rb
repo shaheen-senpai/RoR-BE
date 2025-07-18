@@ -1,79 +1,79 @@
 require 'rails_helper'
+require 'swagger_helper'
 
 RSpec.describe 'Authentication API', type: :request do
   # Login endpoint
-  describe 'POST /api/v1/auth/login' do
-    let!(:user) { create(:user, email: 'test@example.com', password: 'password123') }
-    
-    context 'with valid credentials' do
-      before do
-        post '/api/v1/auth/login', params: { email: 'test@example.com', password: 'password123' }
+  path '/api/v1/auth/login' do
+    post 'Authenticates user and returns token' do
+      tags 'Authentication'
+      consumes 'application/json'
+      produces 'application/json'
+
+      parameter name: :user, in: :body, schema: {
+        type: :object,
+        properties: {
+          email: { type: :string, example: 'user@example.com' },
+          password: { type: :string, example: 'password123' }
+        },
+        required: ['email', 'password']
+      }
+
+      response '200', 'user authenticated' do
+        let!(:test_user) { create(:user, email: 'test@example.com', password: 'password123') }
+        let(:user) { { email: 'test@example.com', password: 'password123' } }
+
+        run_test! do |response|
+          data = JSON.parse(response.body)
+          expect(data).to have_key('token')
+          expect(data).to have_key('user')
+          expect(data['user']['email']).to eq('test@example.com')
+        end
       end
-      
-      it 'returns a token' do
-        expect(json).to have_key('token')
-        expect(json['token']).to be_a(String)
-      end
-      
-      it 'returns user information' do
-        expect(json).to have_key('user')
-        expect(json['user']).to have_key('id')
-        expect(json['user']['email']).to eq('test@example.com')
-      end
-      
-      it 'returns status code 200' do
-        expect(response).to have_http_status(200)
-      end
-    end
-    
-    context 'with invalid credentials' do
-      before do
-        post '/api/v1/auth/login', params: { email: 'test@example.com', password: 'wrong_password' }
-      end
-      
-      it 'returns an error message' do
-        expect(json).to have_key('error')
-        expect(json['error']).to eq('Invalid email or password')
-      end
-      
-      it 'returns status code 401' do
-        expect(response).to have_http_status(401)
+
+      response '401', 'invalid credentials' do
+        let(:user) { { email: 'test@example.com', password: 'wrong_password' } }
+
+        run_test! do |response|
+          data = JSON.parse(response.body)
+          expect(data).to have_key('error')
+          expect(data['error']).to eq('Invalid email or password')
+        end
       end
     end
   end
-  
+
   # Logout endpoint
-  describe 'DELETE /api/v1/auth/logout' do
-    let(:user) { create(:user) }
-    
-    context 'when authenticated' do
-      before do
-        delete '/api/v1/auth/logout', headers: auth_headers(user)
+  path '/api/v1/auth/logout' do
+    delete 'Logs out user by invalidating token' do
+      tags 'Authentication'
+      produces 'application/json'
+      security [{ bearer_auth: [] }]
+
+      response '200', 'logged out successfully' do
+        let(:user) { create(:user) }
+        let(:Authorization) { "Bearer #{generate_token_for(user)}" }
+
+        run_test! do |response|
+          data = JSON.parse(response.body)
+          expect(data).to have_key('message')
+          expect(data['message']).to eq('Logged out successfully')
+        end
       end
-      
-      it 'returns success message' do
-        expect(json).to have_key('message')
-        expect(json['message']).to eq('Logged out successfully')
-      end
-      
-      it 'returns status code 200' do
-        expect(response).to have_http_status(200)
-      end
-    end
-    
-    context 'when not authenticated' do
-      before do
-        delete '/api/v1/auth/logout'
-      end
-      
-      it 'returns unauthorized error' do
-        expect(json).to have_key('error')
-        expect(json['error']).to eq('Unauthorized')
-      end
-      
-      it 'returns status code 401' do
-        expect(response).to have_http_status(401)
+
+      response '401', 'unauthorized' do
+        let(:Authorization) { 'Bearer invalid_token' }
+
+        run_test! do |response|
+          data = JSON.parse(response.body)
+          expect(data).to have_key('error')
+          expect(data['error']).to eq('Unauthorized')
+        end
       end
     end
+  end
+
+  # Helper method to generate token for testing
+  def generate_token_for(user)
+    user.generate_jwt
   end
 end

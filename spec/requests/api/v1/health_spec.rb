@@ -1,29 +1,24 @@
 require 'rails_helper'
+require 'swagger_helper'
 
 RSpec.describe 'Health API', type: :request do
-  describe 'GET /api/v1/health' do
-    before do
-      get '/api/v1/health'
-    end
-    
-    it 'returns status code 200' do
-      expect(response).to have_http_status(200)
-    end
-    
-    it 'returns health information' do
-      expect(json).to have_key('status')
-      expect(json).to have_key('timestamp')
-      expect(json).to have_key('environment')
-      expect(json).to have_key('database')
-      expect(json).to have_key('redis')
-    end
-    
-    it 'indicates the API is operational' do
-      expect(json['status']).to eq('ok')
-    end
-    
-    it 'shows the correct environment' do
-      expect(json['environment']).to eq('test')
+  path '/api/v1/health' do
+    get 'Retrieves API health status' do
+      tags 'Health'
+      produces 'application/json'
+
+      response '200', 'health status retrieved' do
+        run_test! do |response|
+          data = JSON.parse(response.body)
+          expect(data).to have_key('status')
+          expect(data).to have_key('timestamp')
+          expect(data).to have_key('environment')
+          expect(data).to have_key('database')
+          expect(data).to have_key('redis')
+          expect(data['status']).to eq('ok')
+          expect(data['environment']).to eq('test')
+        end
+      end
     end
   end
 end

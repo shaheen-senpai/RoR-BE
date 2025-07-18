@@ -1,165 +1,239 @@
 require 'rails_helper'
+require 'swagger_helper'
 
 RSpec.describe 'Users API', type: :request do
+  # Helper method to generate token for testing
+  def generate_token_for(user)
+    user.generate_jwt
+  end
+
   # GET /api/v1/users
-  describe 'GET /api/v1/users' do
-    let!(:users) { create_list(:user, 5) }
-    let(:user) { users.first }
-    
-    context 'when authenticated' do
-      before do
-        get '/api/v1/users', headers: auth_headers(user)
+  path '/api/v1/users' do
+    get 'Retrieves all users' do
+      tags 'Users'
+      produces 'application/json'
+      security [{ bearer_auth: [] }]
+
+      response '200', 'users found' do
+        let!(:users) { create_list(:user, 5) }
+        let(:user) { users.first }
+        let(:Authorization) { "Bearer #{generate_token_for(user)}" }
+
+        run_test! do |response|
+          data = JSON.parse(response.body)
+          expect(data).not_to be_empty
+          expect(data['users']).not_to be_empty
+          expect(data['users'].size).to eq(5)
+        end
       end
-      
-      it 'returns all users' do
-        expect(json).not_to be_empty
-        expect(json['users']).not_to be_empty
-        expect(json['users'].size).to eq(5)
-      end
-      
-      it 'returns status code 200' do
-        expect(response).to have_http_status(200)
-      end
-    end
-    
-    context 'when not authenticated' do
-      before do
-        get '/api/v1/users'
-      end
-      
-      it 'returns unauthorized error' do
-        expect(json).to have_key('error')
-        expect(json['error']).to eq('Unauthorized')
-      end
-      
-      it 'returns status code 401' do
-        expect(response).to have_http_status(401)
+
+      response '401', 'unauthorized' do
+        let(:Authorization) { nil }
+
+        run_test! do |response|
+          data = JSON.parse(response.body)
+          expect(data).to have_key('error')
+          expect(data['error']).to eq('Unauthorized')
+        end
       end
     end
   end
-  
+
   # GET /api/v1/users/:id
-  describe 'GET /api/v1/users/:id' do
-    let!(:user) { create(:user) }
-    let(:user_id) { user.id }
-    
-    context 'when authenticated' do
-      before do
-        get "/api/v1/users/#{user_id}", headers: auth_headers(user)
-      end
-      
-      context 'when the user exists' do
-        it 'returns the user' do
-          expect(json).not_to be_empty
-          expect(json['id']).to eq(user_id)
-          expect(json['email']).to eq(user.email)
+  path '/api/v1/users/{id}' do
+    parameter name: :id, in: :path, type: :integer, description: 'User ID'
+
+    get 'Retrieves a specific user' do
+      tags 'Users'
+      produces 'application/json'
+      security [{ bearer_auth: [] }]
+
+      response '200', 'user found' do
+        let!(:user) { create(:user) }
+        let(:id) { user.id }
+        let(:Authorization) { "Bearer #{generate_token_for(user)}" }
+
+        run_test! do |response|
+          data = JSON.parse(response.body)
+          expect(data).not_to be_empty
+          expect(data['id']).to eq(user.id)
+          expect(data['email']).to eq(user.email)
         end
-        
-        it 'returns status code 200' do
-          expect(response).to have_http_status(200)
-        end
       end
-      
-      context 'when the user does not exist' do
-        let(:user_id) { 999 }
-        
-        it 'returns status code 404' do
+
+      response '404', 'user not found' do
+        let!(:user) { create(:user) }
+        let(:id) { 999 }
+        let(:Authorization) { "Bearer #{generate_token_for(user)}" }
+
+        run_test! do |response|
           expect(response).to have_http_status(404)
         end
       end
+
+      response '401', 'unauthorized' do
+        let!(:user) { create(:user) }
+        let(:id) { user.id }
+        let(:Authorization) { nil }
+
+        run_test! do |response|
+          data = JSON.parse(response.body)
+          expect(data).to have_key('error')
+          expect(data['error']).to eq('Unauthorized')
+        end
+      end
     end
   end
-  
+
   # POST /api/v1/users
-  describe 'POST /api/v1/users' do
-    let(:valid_attributes) do
-      { 
-        user: {
-          email: 'new@example.com',
-          password: 'password123',
-          password_confirmation: 'password123'
-        }
-      }
-    end
-    
-    context 'when the request is valid' do
-      before do
-        post '/api/v1/users', params: valid_attributes
-      end
-      
-      it 'creates a user' do
-        expect(json['user']['email']).to eq('new@example.com')
-      end
-      
-      it 'returns a token' do
-        expect(json).to have_key('token')
-        expect(json['token']).to be_a(String)
-      end
-      
-      it 'returns status code 201' do
-        expect(response).to have_http_status(201)
-      end
-    end
-    
-    context 'when the request is invalid' do
-      before do
-        post '/api/v1/users', params: { 
+  path '/api/v1/users' do
+    post 'Creates a new user' do
+      tags 'Users'
+      consumes 'application/json'
+      produces 'application/json'
+
+      parameter name: :user_params, in: :body, schema: {
+        type: :object,
+        properties: {
           user: {
-            email: 'invalid',
-            password: 'pass'
+            type: :object,
+            properties: {
+              email: { type: :string, example: 'new@example.com' },
+              password: { type: :string, example: 'password123' },
+              password_confirmation: { type: :string, example: 'password123' }
+            },
+            required: %w[email password password_confirmation]
           }
-        }
-      end
-      
-      it 'returns status code 422' do
-        expect(response).to have_http_status(422)
-      end
-      
-      it 'returns a validation failure message' do
-        expect(json).to have_key('errors')
-      end
-    end
-  end
-  
-  # PUT /api/v1/users/:id
-  describe 'PUT /api/v1/users/:id' do
-    let!(:user) { create(:user) }
-    let(:valid_attributes) do
-      { 
-        user: {
-          email: 'updated@example.com'
-        }
+        },
+        required: ['user']
       }
-    end
-    
-    context 'when authenticated' do
-      before do
-        put "/api/v1/users/#{user.id}", 
-            params: valid_attributes,
-            headers: auth_headers(user)
+
+      response '201', 'user created' do
+        let(:user_params) do
+          {
+            user: {
+              email: 'new@example.com',
+              password: 'password123',
+              password_confirmation: 'password123'
+            }
+          }
+        end
+
+        run_test! do |response|
+          data = JSON.parse(response.body)
+          expect(data['user']['email']).to eq('new@example.com')
+          expect(data).to have_key('token')
+          expect(data['token']).to be_a(String)
+        end
       end
-      
-      it 'updates the user' do
-        expect(json['email']).to eq('updated@example.com')
-      end
-      
-      it 'returns status code 200' do
-        expect(response).to have_http_status(200)
+
+      response '422', 'invalid request' do
+        let(:user_params) do
+          {
+            user: {
+              email: 'invalid',
+              password: 'pass'
+            }
+          }
+        end
+
+        run_test! do |response|
+          data = JSON.parse(response.body)
+          expect(data).to have_key('errors')
+        end
       end
     end
   end
-  
-  # DELETE /api/v1/users/:id
-  describe 'DELETE /api/v1/users/:id' do
-    let!(:user) { create(:user) }
-    
-    context 'when authenticated' do
-      before do
-        delete "/api/v1/users/#{user.id}", headers: auth_headers(user)
+
+  # PUT /api/v1/users/:id
+  path '/api/v1/users/{id}' do
+    parameter name: :id, in: :path, type: :integer, description: 'User ID'
+
+    put 'Updates a user' do
+      tags 'Users'
+      consumes 'application/json'
+      produces 'application/json'
+      security [{ bearer_auth: [] }]
+
+      parameter name: :user_params, in: :body, schema: {
+        type: :object,
+        properties: {
+          user: {
+            type: :object,
+            properties: {
+              email: { type: :string, example: 'updated@example.com' }
+            }
+          }
+        },
+        required: ['user']
+      }
+
+      response '200', 'user updated' do
+        let!(:user) { create(:user) }
+        let(:id) { user.id }
+        let(:Authorization) { "Bearer #{generate_token_for(user)}" }
+        let(:user_params) do
+          {
+            user: {
+              email: 'updated@example.com'
+            }
+          }
+        end
+
+        run_test! do |response|
+          data = JSON.parse(response.body)
+          expect(data['email']).to eq('updated@example.com')
+        end
       end
-      
-      it 'returns status code 204' do
-        expect(response).to have_http_status(204)
+
+      response '401', 'unauthorized' do
+        let!(:user) { create(:user) }
+        let(:id) { user.id }
+        let(:Authorization) { nil }
+        let(:user_params) do
+          {
+            user: {
+              email: 'updated@example.com'
+            }
+          }
+        end
+
+        run_test! do |response|
+          data = JSON.parse(response.body)
+          expect(data).to have_key('error')
+          expect(data['error']).to eq('Unauthorized')
+        end
+      end
+    end
+  end
+
+  # DELETE /api/v1/users/:id
+  path '/api/v1/users/{id}' do
+    parameter name: :id, in: :path, type: :integer, description: 'User ID'
+
+    delete 'Deletes a user' do
+      tags 'Users'
+      produces 'application/json'
+      security [{ bearer_auth: [] }]
+
+      response '204', 'user deleted' do
+        let!(:user) { create(:user) }
+        let(:id) { user.id }
+        let(:Authorization) { "Bearer #{generate_token_for(user)}" }
+
+        run_test!
+      end
+
+      response '401', 'unauthorized' do
+        let!(:user) { create(:user) }
+        let(:id) { user.id }
+        let(:Authorization) { nil }
+
+        run_test! do |response|
+          data = JSON.parse(response.body)
+          expect(data).to have_key('error')
+          expect(data['error']).to eq('Unauthorized')
+        end
       end
     end
   end

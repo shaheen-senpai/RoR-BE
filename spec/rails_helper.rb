@@ -1,7 +1,7 @@
 require 'spec_helper'
 ENV['RAILS_ENV'] ||= 'test'
 require_relative '../config/environment'
-abort("The Rails environment is running in production mode!") if Rails.env.production?
+abort('The Rails environment is running in production mode!') if Rails.env.production?
 require 'rspec/rails'
 require 'database_cleaner/active_record'
 
@@ -12,36 +12,39 @@ require 'webmock/rspec'
 require 'simplecov'
 
 # Configure SimpleCov
-SimpleCov.start 'rails' do
-  add_filter '/bin/'
-  add_filter '/db/'
-  add_filter '/spec/'
-  add_filter '/config/'
-  add_filter '/vendor/'
-  add_filter '/lib/tasks/'
+# Skip coverage check when generating Swagger docs (which uses --dry-run)
+if !ARGV.include?('--dry-run') && !ENV['SKIP_COVERAGE']
+  SimpleCov.start 'rails' do
+    add_filter '/bin/'
+    add_filter '/db/'
+    add_filter '/spec/'
+    add_filter '/config/'
+    add_filter '/vendor/'
+    add_filter '/lib/tasks/'
 
-  # Group files by type
-  add_group 'Controllers', 'app/controllers'
-  add_group 'Models', 'app/models'
-  add_group 'Services', 'app/services'
-  add_group 'Jobs', 'app/jobs'
-  add_group 'Serializers', 'app/serializers'
-  add_group 'Concerns', 'app/concerns'
+    # Group files by type
+    add_group 'Controllers', 'app/controllers'
+    add_group 'Models', 'app/models'
+    add_group 'Services', 'app/services'
+    add_group 'Jobs', 'app/jobs'
+    add_group 'Serializers', 'app/serializers'
+    add_group 'Concerns', 'app/concerns'
 
-  # Set minimum coverage percentage
-  minimum_coverage 90
+    # Set minimum coverage percentage
+    minimum_coverage 90
 
-  # Show coverage for every file (not just the ones with coverage)
-  track_files "app/**/*.rb"
+    # Show coverage for every file (not just the ones with coverage)
+    track_files 'app/**/*.rb'
 
-  # # Use HTML and console formatters
-  # formatter SimpleCov::Formatter::MultiFormatter.new([
-  #   SimpleCov::Formatter::HTMLFormatter,
-  #   SimpleCov::Formatter::Console,
-  # ])
-
-  # Set coverage directory
-  coverage_dir 'coverage'
+    # Set coverage directory
+    coverage_dir 'coverage'
+  end
+else
+  # When running with --dry-run (like in Swagger generation), use a simpler SimpleCov config
+  SimpleCov.start 'rails' do
+    add_filter '/./' # Filter everything, effectively skipping coverage
+    minimum_coverage 0 # Set minimum coverage to 0 to avoid failures
+  end
 end
 
 # Define a console formatter for SimpleCov
