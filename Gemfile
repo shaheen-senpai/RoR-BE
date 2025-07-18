@@ -61,7 +61,7 @@ gem "tzinfo-data", platforms: %i[ mingw mswin x64_mingw jruby ]
 
 group :development, :test do
   gem "byebug", "~> 11.1", platforms: [:mri, :mingw, :x64_mingw]
-  gem "factory_bot_rails", "~> 6.2", require: false
+  gem "factory_bot_rails", "~> 6.2"
   gem "faker", "~> 2.23"
   gem "pry-byebug", "~> 3.9"
   gem "pry-rails", "~> 0.3"

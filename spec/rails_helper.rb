@@ -19,7 +19,7 @@ SimpleCov.start 'rails' do
   add_filter '/config/'
   add_filter '/vendor/'
   add_filter '/lib/tasks/'
-  
+
   # Group files by type
   add_group 'Controllers', 'app/controllers'
   add_group 'Models', 'app/models'
@@ -27,46 +27,46 @@ SimpleCov.start 'rails' do
   add_group 'Jobs', 'app/jobs'
   add_group 'Serializers', 'app/serializers'
   add_group 'Concerns', 'app/concerns'
-  
+
   # Set minimum coverage percentage
   minimum_coverage 90
-  
+
   # Show coverage for every file (not just the ones with coverage)
   track_files "app/**/*.rb"
-  
-  # Use HTML and console formatters
-  formatter SimpleCov::Formatter::MultiFormatter.new([
-    SimpleCov::Formatter::HTMLFormatter,
-    SimpleCov::Formatter::Console,
-  ])
-  
+
+  # # Use HTML and console formatters
+  # formatter SimpleCov::Formatter::MultiFormatter.new([
+  #   SimpleCov::Formatter::HTMLFormatter,
+  #   SimpleCov::Formatter::Console,
+  # ])
+
   # Set coverage directory
   coverage_dir 'coverage'
 end
 
 # Define a console formatter for SimpleCov
-module SimpleCov
-  module Formatter
-    class Console
-      def format(result)
-        puts "\nCoverage Report:"
-        puts "  Overall coverage: #{result.covered_percent.round(2)}%"
-        
-        result.groups.each do |name, files|
-          covered = files.covered_percent.round(2) rescue 0
-          puts "  #{name}: #{covered}%"
-        end
-        
-        puts "\nTop 5 files with low coverage:"
-        result.files.sort_by(&:covered_percent).first(5).each do |file|
-          puts "  #{file.filename}: #{file.covered_percent.round(2)}%"
-        end
-        
-        puts "\nGenerated HTML report: #{File.join(SimpleCov.coverage_dir, 'index.html')}"
-      end
-    end
-  end
-end
+# module SimpleCov
+#   module Formatter
+#     class Console
+#       def format(result)
+#         puts "\nCoverage Report:"
+#         puts "  Overall coverage: #{result.covered_percent.round(2)}%"
+#
+#         result.groups.each do |name, files|
+#           covered = files.covered_percent.round(2) rescue 0
+#           puts "  #{name}: #{covered}%"
+#         end
+#
+#         puts "\nTop 5 files with low coverage:"
+#         result.files.sort_by(&:covered_percent).first(5).each do |file|
+#           puts "  #{file.filename}: #{file.covered_percent.round(2)}%"
+#         end
+#
+#         puts "\nGenerated HTML report: #{File.join(SimpleCov.coverage_dir, 'index.html')}"
+#       end
+#     end
+#   end
+# end
 
 # Requires supporting ruby files with custom matchers and macros, etc,
 # in spec/support/ and its subdirectories.
