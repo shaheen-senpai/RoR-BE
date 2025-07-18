@@ -17,7 +17,12 @@ require 'rails_helper'
 RSpec.describe User, type: :model do
   # Validations
   it { should validate_presence_of(:email) }
-  it { should validate_uniqueness_of(:email).case_insensitive }
+  
+  describe 'uniqueness validation' do
+    subject { create(:user, email: 'test@example.com', password: 'password123') }
+    it { should validate_uniqueness_of(:email).case_insensitive }
+  end
+  
   it { should have_secure_password }
   it { should validate_presence_of(:password) }
   

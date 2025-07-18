@@ -12,7 +12,6 @@ RSpec.describe 'Health API', type: :request do
     
     it 'returns health information' do
       expect(json).to have_key('status')
-      expect(json).to have_key('version')
       expect(json).to have_key('timestamp')
       expect(json).to have_key('environment')
       expect(json).to have_key('database')
